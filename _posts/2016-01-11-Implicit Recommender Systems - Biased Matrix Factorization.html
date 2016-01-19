@@ -204,8 +204,8 @@ tags: [Machine Learning, Recommender Systems]
                     $$ \widehat{R} = X^TY.$$<p>Of course, there is no reason that the "true" user-item matrix $R =
                     (r_{ui})$ should have rank $N$, and indeed, we won't even know the "true" user-item matrix. This
                     model assumes that it can be approximated by a rank $N$ factorization:</p>
-                    $$ R \sim \widehat{R} = X^TY.$$<p>In other words, we want to find an $n_\text{users}\times N$ matrix
-                    $X$ and an $n_\text{items}\times N$ matrix $Y$ such that $\widehat{R}:=X^TY$ approximates $R$.</p>
+                    $$ R \sim \widehat{R} = X^TY.$$<p>In other words, we want to find an $N \times n_\text{users}$ matrix
+                    $X$ and an $N \times n_\text{items}$ matrix $Y$ such that $\widehat{R}:=X^TY$ approximates $R$.</p>
 
                 </div>
             </div>
@@ -260,19 +260,19 @@ tags: [Machine Learning, Recommender Systems]
                         <li>Initialize the user vectors $X$ somehow (e.g. randomly).</li>
                         <li>For each item <code>i</code>, let $r_i$ be the vector of ratings of that item (it will have
                             <code>n_users</code> components; one for each user). Compute
-                            $$y_i = \left(X^T X + \lambda I\right)^{-1} X^T r_i$$
+                            $$y_i = \left(X X^T + \lambda I\right)^{-1} X r_i$$
                             for each item <code>i</code>. ($I$ is the $N\times N$ identity matrix.)
                         </li>
                         <li>For each user <code>u</code>, let $r_u$ be the vector of ratings of that user (it will have
                             <code>n_items</code> components; one for each item).
                             Compute
-                            $$x_u = \left(Y^T Y + \lambda I\right)^{-1} Y^T r_u$$
+                            $$x_u = \left(Y Y^T + \lambda I\right)^{-1} Y r_u$$
                             for each user <code>u</code>.
                         </li>
                         <li>Repeat 2), 3) until desired level of convergence is achieved.</li>
                     </ol>
                     <p><strong><em>Remark.</em></strong> It is almost always faster to solve the linear system
-                        $\left(X^T X + \lambda I\right)y_i = X^T r_i$ instead of inverting the matrix $\left(X^T X +
+                        $\left(X X^T + \lambda I\right)y_i = X r_i$ instead of inverting the matrix $\left(X X^T +
                         \lambda I\right)$ as written in the algorithm (similarly for the user vectors).</p>
 
                 </div>
@@ -364,7 +364,7 @@ tags: [Machine Learning, Recommender Systems]
                             + \lambda\left( \sum_u \|\widetilde{x}_u\|^2 + \sum_i \|\widetilde{y}_i\|^2\right)$. Hence,
                             we find that the item bias and vector can be computed as
                             $$ \widetilde{y}_i := \left(\begin{matrix} \gamma_i \\ y_i\end{matrix}\right) =
-                            \left(\widetilde{X}^T \widetilde{X} + \lambda I\right)^{-1} \widetilde{X}^T r^\beta_i.$$
+                            \left(\widetilde{X} \widetilde{X}^T + \lambda I\right)^{-1} \widetilde{X} r^\beta_i.$$
                             ($I$ is now the $(N+1)\times(N+1)$ identity matrix, and $\tilde{X}$ and $\tilde{Y}$ are
                             matrices whose columns are the vectors $\tilde{x}_u$ and $\tilde{y}_i$ as usual.)
                         </li>
@@ -375,7 +375,7 @@ tags: [Machine Learning, Recommender Systems]
                             $$\widetilde{x}^T_u := (\beta_u, x_u).$$
                             The user bias and vector can be computed as
                             $$ \widetilde{x}_u := \left(\begin{matrix} \beta_u \\ x_u\end{matrix}\right) =
-                            \left(\widetilde{Y}^T \widetilde{Y} + \lambda I\right)^{-1} \widetilde{Y}^T r^\gamma_u.$$
+                            \left(\widetilde{Y} \widetilde{Y}^T + \lambda I\right)^{-1} \widetilde{Y} r^\gamma_u.$$
                         </li>
                         <li>Repeat 2), 3) until convergence.</li>
                     </ol>
@@ -466,13 +466,13 @@ tags: [Machine Learning, Recommender Systems]
                             diagonal matrix with $c_{ui}$ for fixed $u$ along the diagonal, and let $d_i = C^i p_i$ (the
                             reason for defining $d_i$ separately will be explained in the remarks about the
                             <code>numpy</code> implementation below). Compute
-                            $$y_i = \left(X^TC^iX+\lambda I\right)^{-1}X^Td_i.$$
+                            $$y_i = \left(XC^iX^T+\lambda I\right)^{-1}Xd_i.$$
                         </li>
                         <li>For each user <code>u</code>, let $p_u$ be the vector whose components are $p_{ui}$ (for
                             fixed <code>u</code>; there will be <code>n_items</code> components), let $c_{u}$ be the
                             vector whose components are $c_{ui}$, let $C^u$ be the diagonal matrix with $c_u$ along the
                             diagonal, and let $d_u=C^u p_u$. Compute
-                            $$x_u = \left(Y^TC^uY + \lambda I\right)^{-1}Y^Td_u.$$
+                            $$x_u = \left(YC^uY^T + \lambda I\right)^{-1}Yd_u.$$
                         </li>
                         <li>Repeat 2), 3) until convergence.</li>
                     </ol>
@@ -488,14 +488,14 @@ tags: [Machine Learning, Recommender Systems]
                     <p><strong><em>Remarks</em></strong></p>
                     <ol>
                         <li>As for standard (explicit) matrix factorization models, it is (almost) always better to
-                            solve $\left(X^TC^iX+\lambda I\right) y_i = X^Td_i$ than to invert the matrix
-                            $\left(X^TC^iX+\lambda I\right)$.
+                            solve $\left(XC^iX^T+\lambda I\right) y_i = X d_i$ than to invert the matrix
+                            $\left(X C^iX^T+\lambda I\right)$.
                         </li>
                         <li>Since $c_{ui} = 1 + \alpha r_{ui}$, which we can write in terms of matrices $C:=(c_{ui})$
                             and $R:=(r_{ui})$ as $C = 1 + \alpha R$, the computation in step two can be rewritten as
-                            $$y_i = \left(X^TX + \lambda I + \alpha X^TR^iX\right)^{-1}X^Td_i.$$
-                            The term $X^TX+\lambda I$ is independent of <code>i</code>, and can be computed once and
-                            reused at each step of the algorithm (similarly for $Y^TY+\lambda I$ in step 3).
+                            $$y_i = \left(X X^T + \lambda I + \alpha XR^iX^T\right)^{-1}Xd_i.$$
+                            The term $X X^T+\lambda I$ is independent of <code>i</code>, and can be computed once and
+                            reused at each step of the algorithm (similarly for $Y Y^T+\lambda I$ in step 3).
                         </li>
                     </ol>
 
@@ -538,14 +538,14 @@ tags: [Machine Learning, Recommender Systems]
                     <p>Moreover, since $d_i = p_i + \alpha r_i$ (which follows from $p_{ui} r_{ui} = r_{ui}$), we can
                         rewrite the algorithm in terms of just the scaled raw counts $\alpha R$ and the preference $p$
                         as
-                        $$y_i = \left(X^TX+\lambda I + \alpha X^TR^iX\right)^{-1}X^T(p_i + \alpha r_i).$$</p>
+                        $$y_i = \left(X X^T+\lambda I + \alpha X R^iX^T\right)^{-1}X(p_i + \alpha r_i).$$</p>
                     <p>Hence, we can completely avoid constructing the diagonal matrices $C^i$ and $C^u$.</p>
                     <p>Finally, when <code>n_users</code> and <code>n_items</code> are large, $R$ (and hence $p$) will
-                        generally be sparse matrices. The matrix $\left(X^TX+\lambda I + \alpha X^TR^iX\right)$ is,
+                        generally be sparse matrices. The matrix $\left(X X^T+\lambda I + \alpha X R^iX^T\right)$ is,
                         however, $N\times N$ and since the number of factors is generally small (on the order of 10),
                         there is no great savings by using a sparse implementation of this matrix. On the other hand,
                         only the user vectors corresponding to nonzero entries of $r_i$ (and $p_i$) are needed in the
-                        computation of $X^TR^iX$ and of $X^T(p_i + \alpha r_i)$, so if the algorithm is parallelized, it
+                        computation of $XR^iX^T$ and of $X(p_i + \alpha r_i)$, so if the algorithm is parallelized, it
                         is <em>very</em> useful to only ship those vectors to the workers doing the computation for
                         $y_i$ (this is, for example, how the <a
                                 href="http://spark.apache.org/docs/latest/mllib-collaborative-filtering.html">Spark
@@ -599,8 +599,8 @@ tags: [Machine Learning, Recommender Systems]
                             and
                             $$\tilde{y}_i^T = (\gamma_i, y^T_i).$$
                             Then compute
-                            $$\tilde{y}_i = \left(\widetilde{X}^TC^i\widetilde{X} + \lambda
-                            I\right)^{-1}\widetilde{X}^Td^\beta_i,$$
+                            $$\tilde{y}_i = \left(\widetilde{X}C^i\widetilde{X}^T + \lambda
+                            I\right)^{-1}\widetilde{X}d^\beta_i,$$
                             where we have defined $d^\beta_i=C^ip^\beta_i$ as in the previous implicit ALS algorithm.
                         </li>
                         <li>Define vectors
@@ -609,8 +609,8 @@ tags: [Machine Learning, Recommender Systems]
                             and
                             $$\tilde{x}_u^T = (\beta_u, x^T_u).$$
                             Then compute
-                            $$\widetilde{x}_u = \left(\widetilde{Y}^TC^u\widetilde{Y} + \lambda
-                            I\right)^{-1}\widetilde{Y}^Td^\gamma_u,$$
+                            $$\widetilde{x}_u = \left(\widetilde{Y}C^u\widetilde{Y}^T + \lambda
+                            I\right)^{-1}\widetilde{Y}d^\gamma_u,$$
                             where $d^\gamma_u=C^up^\gamma_u$.
                         </li>
                         <li>Repeat 2) and 3)</li>
